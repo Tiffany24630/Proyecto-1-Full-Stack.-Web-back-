@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func getSeries(w http.ResponseWriter, r *http.Request) {
@@ -70,13 +72,101 @@ func getSeries(w http.ResponseWriter, r *http.Request) {
 }
 
 func getSeriesByID(w http.ResponseWriter, r *http.Request, id int) {
+	enableCORS(w)
+
+	if handleOptions(w, r) {
+		return
+	}
+
+	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
+	id, _ = strconv.Atoi(idstr)
+
+	var s Series
+	err := db.QueryRow("SELECT * FROM AnimeManga WHERE id = ?", id).Scan(&s.ID, &s.Title, &s.Type, &s.Total, &s.Progress, &s.Image)
+
+	if err != nil {
+		errorResponse(w, 404, "Series not found")
+		return
+	}
+
+	jsonResponse(w, 200, s)
 }
 
 func createSeries(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if handleOptions(w, r) {
+		return
+	}
+
+	var s Series
+	json.NewDecoder(r.Body).Decode(&s)
+
+	if s.Title == "" {
+		errorResponse(w, 400, "title is required")
+		return
+	}
+
+	res, err := db.Exec(
+		"INSERT INTO AnimeManga(title, type, total_episodes, watched_episodes, image) VALUES (?, ?, ?, ?, ?)",
+		s.Title, s.Type, s.TotalEpisodes, s.WatchedEpisodes, s.Image,
+	)
+
+	if err != nil {
+		errorResponse(w, 500, "insert error")
+		return
+	}
+
+	id, _ := res.LastInsertId()
+	s.ID = int(id)
+
+	jsonResponse(w, 201, s)
 }
 
 func updateSeries(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if handleOptions(w, r) {
+		return
+	}
+
+	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
+	id, _ = strconv.Atoi(idstr)
+
+	var s Series
+	json.NewDecoder(r.Body).Decode(&s)
+
+	_, err := db.Exec(
+		"UPDATE AnimeManga SET title = ?, type = ?, total_episodes = ?, watched_episodes = ?, image = ? WHERE id = ?",
+		s.Title, s.Type, s.TotalEpisodes, s.WatchedEpisodes, s.Image, id,
+	)
+
+	if err != nil {
+		errorResponse(w, 500, "update error")
+		return
+	}
+
+	jsonResponse(w, 200, s)
 }
 
 func deleteSeries(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+
+	if handleOptions(w, r) {
+		return
+	}
+
+	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
+	id, _ = strconv.Atoi(idstr)
+
+	res, _ := db.Exec("DELETE FROM AnimeManga WHERE id = ?", id)
+	rows, _ := res.RowsAffected()
+
+	if rows == 0 {
+		errorResponse(w, 404, "Series not found")
+		return
+	}
+
+	w.WriteHeader(204)
+
 }
