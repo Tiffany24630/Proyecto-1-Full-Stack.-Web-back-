@@ -1,0 +1,115 @@
+openapi: 3.0.0
+info:
+  title: Anime & Manga Tracker API
+  version: 1.0.0
+  description: API para registrar animes vistos y mangas leídos
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /series:
+    get:
+      summary: Obtener todas las series
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Buscar por título
+      responses:
+        '200':
+          description: Lista de series
+    post:
+      summary: Crear una serie
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Series'
+      responses:
+        '201':
+          description: Creado
+
+  /series/{id}:
+    get:
+      summary: Obtener serie por ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Serie encontrada
+        '404':
+          description: No encontrada
+
+    put:
+      summary: Actualizar serie
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Series'
+      responses:
+        '200':
+          description: Actualizado
+
+    delete:
+      summary: Eliminar serie
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado
+
+  /series/progress:
+    put:
+      summary: Actualizar progreso (episodios/capítulos)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id:
+                  type: integer
+                progress:
+                  type: integer
+      responses:
+        '200':
+          description: Progreso actualizado
+
+components:
+  schemas:
+    Series:
+      type: object
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          enum: [anime, manga]
+        total:
+          type: integer
+        progress:
+          type: integer
+        image:
+          type: string
