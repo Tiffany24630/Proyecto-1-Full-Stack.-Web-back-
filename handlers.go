@@ -109,7 +109,7 @@ func createSeries(w http.ResponseWriter, r *http.Request) {
 
 	res, err := db.Exec(
 		"INSERT INTO AnimeManga(title, type, total_episodes, watched_episodes, image) VALUES (?, ?, ?, ?, ?)",
-		s.Title, s.Type, s.TotalEpisodes, s.WatchedEpisodes, s.Image,
+		s.Title, s.Type, s.Total, s.Progress, s.Image,
 	)
 
 	if err != nil {
@@ -131,14 +131,14 @@ func updateSeries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
-	id, _ = strconv.Atoi(idstr)
+	id, _ := strconv.Atoi(idstr)
 
 	var s Series
 	json.NewDecoder(r.Body).Decode(&s)
 
 	_, err := db.Exec(
 		"UPDATE AnimeManga SET title = ?, type = ?, total_episodes = ?, watched_episodes = ?, image = ? WHERE id = ?",
-		s.Title, s.Type, s.TotalEpisodes, s.WatchedEpisodes, s.Image, id,
+		s.Title, s.Type, s.Total, s.Progress, s.Image, id,
 	)
 
 	if err != nil {
@@ -157,7 +157,7 @@ func deleteSeries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
-	id, _ = strconv.Atoi(idstr)
+	id, _ := strconv.Atoi(idstr)
 
 	res, _ := db.Exec("DELETE FROM AnimeManga WHERE id = ?", id)
 	rows, _ := res.RowsAffected()
@@ -168,5 +168,4 @@ func deleteSeries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(204)
-
 }
