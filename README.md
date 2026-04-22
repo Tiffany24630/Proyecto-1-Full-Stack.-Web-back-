@@ -164,7 +164,7 @@ http://localhost:8080
 
 # Deploy
 
-El backend está desplegado en Render:
+El backend está desplegado en:
 
 ```
 
@@ -173,6 +173,7 @@ El backend está desplegado en Render:
 Swagger también está disponible ahí:
 
 ```
+http://localhost:8080/swagger/
 ```
 
 # Estructura
@@ -185,6 +186,7 @@ backend/
 │── db.go
 │── openapi.yaml
 │── go.mod
+│── utils.go
 ```
 
 ---
