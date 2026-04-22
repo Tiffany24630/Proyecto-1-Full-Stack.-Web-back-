@@ -176,6 +176,11 @@ Swagger también está disponible ahí:
 http://localhost:8080/swagger/
 ```
 
+# Screenshot
+
+![alt text](image.png)
+---
+
 # Estructura
 
 ```
@@ -191,6 +196,17 @@ backend/
 
 ---
 
+
+# Challenges implementados
+
+* API REST completa
+* Swagger (OpenAPI)
+* CORS
+* Validación de datos
+* Búsqueda
+
+---
+
 # Frontend
 
 El frontend está en otro repositorio (requerido por el lab):
@@ -198,13 +214,14 @@ El frontend está en otro repositorio (requerido por el lab):
 https://github.com/Tiffany24630/Proyecto-1-Full-Stack.-Web-front 
 ---
 
-# Comentario final
+# Reflexión
 
-La parte importante de este proyecto no es solo que funcione, sino cómo está separado:
+Go fue una buena elección porque permite crear APIs rápidas con muy poco overhead. El uso de `net/http` fue sencillo pero también implica escribir más código manual comparado con frameworks.
 
-* el backend solo maneja datos
-* el frontend solo los consume
+La parte más complicada fue estructurar correctamente los endpoints y mantener consistencia entre modelos, base de datos y handlers.
 
-Eso hace que la aplicación sea más flexible y fácil de escalar a futuro.
+Swagger fue útil para probar la API y entender mejor el contrato cliente-servidor.
+
+Sí usaría Go nuevamente para backend, especialmente en proyectos donde se necesita buen rendimiento y simplicidad.
 
 ---
