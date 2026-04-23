@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -37,5 +39,11 @@ func main() {
 		}
 	})
 
-	http.ListenAndServe(":24630", nil)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
+	http.ListenAndServe(":"+port, nil)
+	log.Println("Server running on port:", port)
 }
