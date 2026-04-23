@@ -44,6 +44,6 @@ func main() {
 		port = "8080"
 	}
 
+	log.Println("Running on port:", port)
 	http.ListenAndServe(":"+port, nil)
-	log.Println("Server running on port:", port)
 }
