@@ -12,7 +12,7 @@ func main() {
 	initDB()
 
 	http.Handle("/swagger/", httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8080/openapi.yaml"),
+		httpSwagger.URL("/openapi.yaml")
 	))
 
 	http.HandleFunc("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
