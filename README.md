@@ -173,7 +173,7 @@ https://proyecto-1-full-stack-web-back.onrender.com
 Swagger también está disponible ahí:
 
 ```
-https://proyecto-1-full-stack-web-back.onrender.com
+https://proyecto-1-full-stack-web-back.onrender.com/swagger/index.html
 ```
 
 # Screenshot
