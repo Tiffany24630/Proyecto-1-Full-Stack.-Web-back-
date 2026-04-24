@@ -22,7 +22,7 @@ func main() {
 	http.HandleFunc("/series", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
-			getSeries(w, r)
+			getSeriesByID(w, r, 0)
 
 		case "POST":
 			createSeries(w, r)
@@ -35,7 +35,6 @@ func main() {
 
 		default:
 			http.NotFound(w, r)
-
 		}
 	})
 
@@ -45,5 +44,5 @@ func main() {
 	}
 
 	log.Println("Running on port:", port)
-	http.ListenAndServe(":"+port, nil)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

@@ -20,8 +20,8 @@ func initDB() {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		title TEXT NOT NULL,
 		type TEXT,
-		total_caps INTEGER,
-		watched_caps INTEGER DEFAULT 0,
+		total INTEGER,
+		progress INTEGER DEFAULT 0,
 		image TEXT
 	);`
 

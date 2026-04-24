@@ -31,7 +31,7 @@ func getSeries(w http.ResponseWriter, r *http.Request) {
 	query := "SELECT * FROM AnimeManga WHERE 1=1"
 	args := []interface{}{}
 
-	search := r.URL.Query().Get("search")
+	search := r.URL.Query().Get("q")
 
 	if search != "" {
 		query += " AND title LIKE ?"
@@ -48,7 +48,7 @@ func getSeries(w http.ResponseWriter, r *http.Request) {
 		query += " ORDER BY " + sort + " " + order
 	}
 
-	query += "LIMIT ? OFFSET ?"
+	query += " LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
 	rows, err := db.Query(query, args...)
@@ -65,6 +65,10 @@ func getSeries(w http.ResponseWriter, r *http.Request) {
 	for rows.Next() {
 		var s Series
 		rows.Scan(&s.ID, &s.Title, &s.Type, &s.Total, &s.Progress, &s.Image)
+		if err := rows.Scan(&s.ID, &s.Title, &s.Type, &s.Total, &s.Progress, &s.Image); err != nil {
+			errorResponse(w, 500, err.Error())
+			return
+		}
 		list = append(list, s)
 	}
 
@@ -108,7 +112,7 @@ func createSeries(w http.ResponseWriter, r *http.Request) {
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO AnimeManga(title, type, total_episodes, watched_episodes, image) VALUES (?, ?, ?, ?, ?)",
+		"INSERT INTO AnimeManga(title, type, total, progress, image)",
 		s.Title, s.Type, s.Total, s.Progress, s.Image,
 	)
 
@@ -137,7 +141,7 @@ func updateSeries(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&s)
 
 	_, err := db.Exec(
-		"UPDATE AnimeManga SET title = ?, type = ?, total_episodes = ?, watched_episodes = ?, image = ? WHERE id = ?",
+		"UPDATE AnimeManga SET title = ?, type = ?, total = ?, progress = ?, image = ?",
 		s.Title, s.Type, s.Total, s.Progress, s.Image, id,
 	)
 
