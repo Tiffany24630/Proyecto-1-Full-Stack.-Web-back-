@@ -5,7 +5,7 @@ info:
   description: API para registrar animes vistos y mangas leídos
 
 servers:
-  - url: http://localhost:8080
+  - url: https://proyecto-1-full-stack-web-back.onrender.com
 
 paths:
   /series:
