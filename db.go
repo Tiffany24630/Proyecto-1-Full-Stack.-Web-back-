@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -13,7 +14,7 @@ func initDB() {
 	db, err = sql.Open("sqlite3", "./series.db")
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	createTable := `CREATE TABLE IF NOT EXISTS AnimeManga(
@@ -28,6 +29,6 @@ func initDB() {
 	_, err = db.Exec(createTable)
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }

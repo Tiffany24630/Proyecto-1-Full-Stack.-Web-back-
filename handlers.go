@@ -7,64 +7,65 @@ import (
 	"strings"
 )
 
-func getSeries(w http.ResponseWriter, r *http.Request) {
+func seriesHandler(w http.ResponseWriter, r *http.Request) {
 	enableCORS(w)
-
 	if handleOptions(w, r) {
 		return
 	}
 
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	switch r.Method {
+	case "GET":
+		getSeries(w, r)
+	case "POST":
+		createSeries(w, r)
+	default:
+		http.NotFound(w, r)
+	}
+}
 
-	if page < 1 {
-		page = 1
+func seriesByIDHandler(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if handleOptions(w, r) {
+		return
 	}
 
-	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	idStr := strings.TrimPrefix(r.URL.Path, "/series/")
+	id, _ := strconv.Atoi(idStr)
 
-	if limit < 1 {
-		limit = 10
+	switch r.Method {
+	case "GET":
+		getSeriesByID(w, id)
+	case "PUT":
+		updateSeries(w, r, id)
+	case "DELETE":
+		deleteSeries(w, id)
+	default:
+		http.NotFound(w, r)
 	}
+}
 
-	offset := (page - 1) * limit
-
-	query := "SELECT * FROM AnimeManga WHERE 1=1"
-	args := []interface{}{}
-
+func getSeries(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("q")
+
+	query := "SELECT id, title, type, total, progress, image FROM AnimeManga WHERE 1=1"
+	args := []interface{}{}
 
 	if search != "" {
 		query += " AND title LIKE ?"
 		args = append(args, "%"+search+"%")
 	}
 
-	sort := r.URL.Query().Get("sort")
-	order := r.URL.Query().Get("order")
-
-	if sort != "" {
-		if order != "desc" {
-			order = "asc"
-		}
-		query += " ORDER BY " + sort + " " + order
-	}
-
-	query += " LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
-
 	rows, err := db.Query(query, args...)
-
 	if err != nil {
-		errorResponse(w, 500, "Error fetching series")
+		errorResponse(w, 500, err.Error())
 		return
 	}
-
 	defer rows.Close()
 
 	var list []Series
 
 	for rows.Next() {
 		var s Series
-		rows.Scan(&s.ID, &s.Title, &s.Type, &s.Total, &s.Progress, &s.Image)
 		if err := rows.Scan(&s.ID, &s.Title, &s.Type, &s.Total, &s.Progress, &s.Image); err != nil {
 			errorResponse(w, 500, err.Error())
 			return
@@ -75,21 +76,13 @@ func getSeries(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, 200, list)
 }
 
-func getSeriesByID(w http.ResponseWriter, r *http.Request, id int) {
-	enableCORS(w)
-
-	if handleOptions(w, r) {
-		return
-	}
-
-	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
-	id, _ = strconv.Atoi(idstr)
-
+func getSeriesByID(w http.ResponseWriter, id int) {
 	var s Series
-	err := db.QueryRow("SELECT * FROM AnimeManga WHERE id = ?", id).Scan(&s.ID, &s.Title, &s.Type, &s.Total, &s.Progress, &s.Image)
+	err := db.QueryRow("SELECT id, title, type, total, progress, image FROM AnimeManga WHERE id = ?", id).
+		Scan(&s.ID, &s.Title, &s.Type, &s.Total, &s.Progress, &s.Image)
 
 	if err != nil {
-		errorResponse(w, 404, "Series not found")
+		errorResponse(w, 404, "Not found")
 		return
 	}
 
@@ -97,27 +90,16 @@ func getSeriesByID(w http.ResponseWriter, r *http.Request, id int) {
 }
 
 func createSeries(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
-	if handleOptions(w, r) {
-		return
-	}
-
 	var s Series
 	json.NewDecoder(r.Body).Decode(&s)
 
-	if s.Title == "" {
-		errorResponse(w, 400, "title is required")
-		return
-	}
-
 	res, err := db.Exec(
-		"INSERT INTO AnimeManga(title, type, total, progress, image)",
+		"INSERT INTO AnimeManga(title, type, total, progress, image) VALUES (?, ?, ?, ?, ?)",
 		s.Title, s.Type, s.Total, s.Progress, s.Image,
 	)
 
 	if err != nil {
-		errorResponse(w, 500, "insert error")
+		errorResponse(w, 500, err.Error())
 		return
 	}
 
@@ -127,49 +109,53 @@ func createSeries(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, 201, s)
 }
 
-func updateSeries(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
-	if handleOptions(w, r) {
-		return
-	}
-
-	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
-	id, _ := strconv.Atoi(idstr)
-
+func updateSeries(w http.ResponseWriter, r *http.Request, id int) {
 	var s Series
 	json.NewDecoder(r.Body).Decode(&s)
 
 	_, err := db.Exec(
-		"UPDATE AnimeManga SET title = ?, type = ?, total = ?, progress = ?, image = ?",
+		"UPDATE AnimeManga SET title=?, type=?, total=?, progress=?, image=? WHERE id=?",
 		s.Title, s.Type, s.Total, s.Progress, s.Image, id,
 	)
 
 	if err != nil {
-		errorResponse(w, 500, "update error")
+		errorResponse(w, 500, err.Error())
 		return
 	}
 
 	jsonResponse(w, 200, s)
 }
 
-func deleteSeries(w http.ResponseWriter, r *http.Request) {
-	enableCORS(w)
-
-	if handleOptions(w, r) {
-		return
-	}
-
-	idstr := strings.TrimPrefix(r.URL.Path, "/series/")
-	id, _ := strconv.Atoi(idstr)
-
-	res, _ := db.Exec("DELETE FROM AnimeManga WHERE id = ?", id)
+func deleteSeries(w http.ResponseWriter, id int) {
+	res, _ := db.Exec("DELETE FROM AnimeManga WHERE id=?", id)
 	rows, _ := res.RowsAffected()
 
 	if rows == 0 {
-		errorResponse(w, 404, "Series not found")
+		errorResponse(w, 404, "Not found")
 		return
 	}
 
 	w.WriteHeader(204)
+}
+
+func updateProgress(w http.ResponseWriter, r *http.Request) {
+	enableCORS(w)
+	if handleOptions(w, r) {
+		return
+	}
+
+	var data struct {
+		ID       int `json:"id"`
+		Progress int `json:"progress"`
+	}
+
+	json.NewDecoder(r.Body).Decode(&data)
+
+	_, err := db.Exec("UPDATE AnimeManga SET progress=? WHERE id=?", data.Progress, data.ID)
+	if err != nil {
+		errorResponse(w, 500, err.Error())
+		return
+	}
+
+	jsonResponse(w, 200, map[string]string{"message": "updated"})
 }

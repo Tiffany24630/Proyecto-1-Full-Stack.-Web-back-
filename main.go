@@ -16,10 +16,15 @@ func main() {
 	))
 
 	http.HandleFunc("/openapi.yaml", func(w http.ResponseWriter, r *http.Request) {
+		enableCORS(w)
 		http.ServeFile(w, r, "./openapi.yaml")
 	})
 
-	http.HandleFunc("/series", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/series", seriesHandler)
+	http.HandleFunc("/series/", seriesByIDHandler)
+	http.HandleFunc("/series/progress", updateProgress)
+
+	/*http.HandleFunc("/series", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case "GET":
 			getSeriesByID(w, r, 0)
@@ -36,7 +41,7 @@ func main() {
 		default:
 			http.NotFound(w, r)
 		}
-	})
+	})*/
 
 	port := os.Getenv("PORT")
 	if port == "" {

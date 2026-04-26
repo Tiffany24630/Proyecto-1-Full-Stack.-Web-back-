@@ -21,6 +21,7 @@ func handleOptions(w http.ResponseWriter, r *http.Request) bool {
 }
 
 func jsonResponse(w http.ResponseWriter, status int, data interface{}) {
+	enableCORS(w)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
